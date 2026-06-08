@@ -1,0 +1,23 @@
+﻿{
+    "name":  "Cliffhanger Solutions",
+    "url":  "http://www.cliffhanger-solutions.com",
+    "description":  "",
+    "industry":  "",
+    "hasContactForm":  true,
+    "expectedNavItems":  [
+
+                         ],
+    "viewports":  [
+                      "desktop",
+                      "mobile",
+                      "tablet"
+                  ],
+    "skipVisual":  false,
+    "skipForms":  false,
+    "auth":  {
+                 "required":  false,
+                 "loginUrl":  "",
+                 "username":  "",
+                 "password":  ""
+             }
+}
