@@ -1,0 +1,24 @@
+# CODEOWNERS
+# Each line is a pattern followed by one or more owners.
+# Owners are automatically requested for review on matching PRs.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# All files — default reviewer
+*                           @rosmall
+
+# Site configuration — requires careful review
+site.config.json            @rosmall
+playwright.config.ts        @rosmall
+
+# CI/CD pipeline
+.github/workflows/          @rosmall
+
+# Core framework
+src/                        @rosmall
+src/pages/                  @rosmall
+src/fixtures/               @rosmall
+
+# Claude Code configuration
+CLAUDE.md                   @rosmall
+AGENTS.md                   @rosmall
+.claude/                    @rosmall

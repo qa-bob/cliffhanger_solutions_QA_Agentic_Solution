@@ -1,0 +1,159 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run full suite nightly at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options: [all, smoke, navigation, forms, functional, visual, responsive]
+
+jobs:
+  # ── Smoke gate ─────────────────────────────────────────────────────────────
+  smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
+      - name: Run smoke tests
+        run: npm run test:smoke
+        env:
+          CI: true
+
+      - name: Upload smoke report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ── Full suite ──────────────────────────────────────────────────────────────
+  full-suite:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: smoke
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/master'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [navigation, forms, functional, responsive]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run ${{ matrix.suite }} tests
+        run: npx playwright test --grep @${{ matrix.suite }}
+        env:
+          CI: true
+
+      - name: Upload ${{ matrix.suite }} report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.suite }}-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test results JSON
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.suite }}-results
+          path: test-results/results.json
+          retention-days: 14
+
+  # ── Visual regression ───────────────────────────────────────────────────────
+  visual:
+    name: Visual Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: smoke
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Download visual baselines
+        uses: actions/download-artifact@v4
+        with:
+          name: visual-baselines
+          path: __snapshots__/
+        continue-on-error: true   # First run has no baselines
+
+      - name: Run visual tests
+        run: npm run test:visual
+        env:
+          CI: true
+
+      - name: Upload visual report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Save baselines on success
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: visual-baselines
+          path: __snapshots__/
+          retention-days: 90
