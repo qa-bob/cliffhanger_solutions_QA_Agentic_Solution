@@ -71,10 +71,7 @@ test.describe('Footer @functional', () => {
     const links = footer.locator('a[href]');
     const count = await links.count();
 
-    if (count === 0) {
-      console.warn('[functional] Footer has no links.');
-      return;
-    }
+    test.skip(count === 0, 'Footer has no links');
 
     const baseUrl = new URL(siteConfig.url);
     const brokenLinks: string[] = [];

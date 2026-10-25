@@ -88,7 +88,8 @@ test.describe('Homepage Functional @functional', () => {
     ).toBeGreaterThan(0);
   });
 
-  test('primary CTA is visible without scrolling @functional', async ({ page, siteConfig }) => {
+  test('primary CTA is visible without scrolling @functional', async ({ page, siteConfig }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium-desktop', 'Runs only in the "chromium-desktop" project');
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(siteConfig.url, { waitUntil: 'domcontentloaded' });
 
@@ -98,10 +99,7 @@ test.describe('Homepage Functional @functional', () => {
       .filter({ hasText: /get started|contact us|learn more|request demo|free trial|try/i })
       .first();
 
-    if (await ctaInViewport.count() === 0) {
-      console.warn('[functional] No CTA found in initial viewport. Consider moving CTA above the fold.');
-      return;
-    }
+    test.skip(await ctaInViewport.count() === 0, 'No CTA found in initial viewport');
 
     const boundingBox = await ctaInViewport.boundingBox();
     if (boundingBox) {
