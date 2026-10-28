@@ -106,7 +106,7 @@ test.describe('Accessibility @functional', () => {
     const buttons = page.locator('button, [role="button"]');
     const count = await buttons.count();
 
-    if (count === 0) return;
+    test.skip(count === 0, 'No buttons found');
 
     const unlabeled: string[] = [];
 
@@ -120,7 +120,7 @@ test.describe('Accessibility @functional', () => {
       const hasAccessibleName = text.length > 0 || ariaLabel || ariaLabelledBy || title;
 
       if (!hasAccessibleName) {
-        const outerHtml = await btn.evaluate<string>((el) => el.outerHTML.substring(0, 100));
+        const outerHtml = await btn.evaluate((el) => el.outerHTML.substring(0, 100));
         unlabeled.push(outerHtml);
       }
     }
@@ -142,7 +142,7 @@ test.describe('Accessibility @functional', () => {
     const links = page.locator('a[href]');
     const count = await links.count();
 
-    if (count === 0) return;
+    test.skip(count === 0, 'No links found');
 
     const unlabeled: string[] = [];
 

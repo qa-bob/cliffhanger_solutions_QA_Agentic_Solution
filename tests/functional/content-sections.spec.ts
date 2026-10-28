@@ -170,10 +170,8 @@ test.describe('Content Sections @functional', () => {
       );
 
       const count = await accordionTriggers.count();
-      if (count === 0) {
-        // No accordions — perfectly fine
-        return;
-      }
+      // No accordions — perfectly fine
+      test.skip(count === 0, 'No accordions or expandable sections found');
 
       // Click the first trigger and verify something expands
       const firstTrigger = accordionTriggers.first();

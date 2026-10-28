@@ -27,9 +27,9 @@ export class BasePage {
     await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
   }
 
-  /** Wait until network activity has settled. */
+  /** Wait until the page and its subresources have loaded. */
   async waitForLoad(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
   }
 
   // ── Page metadata ───────────────────────────────────────────────────────────

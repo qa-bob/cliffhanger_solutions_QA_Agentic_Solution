@@ -61,12 +61,10 @@ test.describe('Page SEO @functional', () => {
   // ── Meta description ──────────────────────────────────────────────────────────
 
   test('meta description is present @functional', async ({ page }) => {
-    const metaDesc = await page.locator('meta[name="description"]').getAttribute('content');
+    const metaTag = page.locator('meta[name="description"]').first();
+    const metaDesc = (await metaTag.count()) > 0 ? ((await metaTag.getAttribute('content')) ?? '') : '';
 
-    if (!metaDesc || metaDesc.trim().length === 0) {
-      console.warn('[seo] Missing meta description. This affects click-through rate in search results.');
-      return;
-    }
+    test.skip(metaDesc.trim().length === 0, 'No meta description found');
 
     expect(metaDesc.trim().length, 'Meta description should have meaningful content').toBeGreaterThan(20);
 
@@ -81,9 +79,13 @@ test.describe('Page SEO @functional', () => {
   // ── Open Graph ────────────────────────────────────────────────────────────────
 
   test('Open Graph tags are present @functional', async ({ page }) => {
-    const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
-    const ogDescription = await page.locator('meta[property="og:description"]').getAttribute('content');
-    const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+    const metaContent = async (selector: string): Promise<string | null> => {
+      const tag = page.locator(selector).first();
+      return (await tag.count()) > 0 ? tag.getAttribute('content') : null;
+    };
+    const ogTitle = await metaContent('meta[property="og:title"]');
+    const ogDescription = await metaContent('meta[property="og:description"]');
+    const ogImage = await metaContent('meta[property="og:image"]');
 
     const missing: string[] = [];
     if (!ogTitle) missing.push('og:title');
@@ -102,12 +104,10 @@ test.describe('Page SEO @functional', () => {
   // ── Canonical URL ─────────────────────────────────────────────────────────────
 
   test('canonical URL tag is present @functional', async ({ page, siteConfig }) => {
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+    const canonicalTag = page.locator('link[rel="canonical"]').first();
+    const canonical = (await canonicalTag.count()) > 0 ? ((await canonicalTag.getAttribute('href')) ?? '') : '';
 
-    if (!canonical) {
-      console.warn('[seo] No canonical URL tag found. Duplicate content issues may arise.');
-      return;
-    }
+    test.skip(!canonical, 'No canonical URL tag found');
 
     // Canonical should point to the site (not an unrelated domain)
     const siteOrigin = new URL(siteConfig.url).origin;
@@ -144,9 +144,8 @@ test.describe('Page SEO @functional', () => {
   // ── robots / noindex ──────────────────────────────────────────────────────────
 
   test('page is not accidentally blocked from indexing @functional', async ({ page }) => {
-    const robotsMeta = await page
-      .locator('meta[name="robots"]')
-      .getAttribute('content');
+    const robotsTag = page.locator('meta[name="robots"]').first();
+    const robotsMeta = (await robotsTag.count()) > 0 ? await robotsTag.getAttribute('content') : null;
 
     if (robotsMeta) {
       const robotsLower = robotsMeta.toLowerCase();
